@@ -6,7 +6,7 @@ class Location extends Model {
     }
     static get relationMappings(){
         return {
-            fromRideLocation: {
+            Ride: {
                 relation: Model.HasManyRelation,
                 modelClass: __dirname + '/Ride',
                 join: {
