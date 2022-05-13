@@ -16,7 +16,8 @@ export default new Vuex.Store({
     // Cannot update state directly; use a `mutation` (below).
     // Access in components as `this.$store.state.currentAccount`
     state: {
-        currentAccount: null
+        currentAccount: null,
+        isAdmin: false
     },
 
     // A "getter" returns a computed property from the store, similar
@@ -26,6 +27,9 @@ export default new Vuex.Store({
     getters: {
         isLoggedIn(state) {
             return state.currentAccount !== null;
+        },
+        isAdmin(state) {
+            return state.isAdmin===true;
         }
     },
 
@@ -38,6 +42,12 @@ export default new Vuex.Store({
         },
         logOut(state) {
             state.currentAccount = null;
+        },
+        setAdmin(state, admin) {
+            state.isAdmin = admin.isAdmin;
+        },
+        resetAdmin(state) {
+            state.isAdmin = false;
         }
     }
 });

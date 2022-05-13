@@ -113,7 +113,7 @@ async function init(){
 				validate: {
 					payload: Joi.object({
 						email: Joi.string().email().required(),
-						password: Joi.string().min(8).required(),
+						password: Joi.string().min(1).required(),
 					}),
 				},
 			},
@@ -133,7 +133,8 @@ async function init(){
 							firstName: user.firstName,
 							lastName: user.lastName,
 							email: user.email,
-							phone: user.phone
+							phone: user.phone,
+							isAdmin: user.isAdmin
 						},
 					};
 				} else {
@@ -146,7 +147,7 @@ async function init(){
 		},
 
 		{
-			method: "GET",
+			method: "POST",
 			path: "/become-driver",
 			// config:{
 			// 	description: "Become Driver",
@@ -161,10 +162,10 @@ async function init(){
 				const queryUserId = await User.query()
 					.select('id')
 					.where("email", request.payload.email)
-
+				console.log(queryUserId)
 				const isDriver = await queryUserId
-					.$relatedQuery('driver')
-					.where("driver.userId", queryUserId);
+					.$relatedQuery('Driver')
+					.where("Driver.userId", queryUserId);
 
 				if (isDriver) {
 					return {

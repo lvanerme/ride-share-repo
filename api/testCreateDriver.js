@@ -60,22 +60,24 @@ async function init(){
             },
         },
 
-        // {
-        //     method: "GET",
-        //     path: "/become-driver",
-        //     handler: async (request, h) => {
-        //         try{
-        //             const queryUserId = await User.query().select("id","email").where("email",request.payload.email)
-        //             if(queryUserId){
-        //                 return h.response(queryUserId).code(200)
-        //             } else {
-        //                 return Boom.badRequest("invalid Request")
-        //             }
-        //         } catch (err){
-        //             return Boom.badRequest(err);
-        //         }
-        //     },
-        // },
+        {
+            method: "POST",
+            path: "/become-driver",
+            handler: async (request, h) => {
+                try{
+                    console.log(request.payload)
+                    const queryUserId = await User.query().select("id","email")
+                        .where("email",request.payload.email)
+                    if(queryUserId){
+                        return h.response(queryUserId).code(200)
+                    } else {
+                        return Boom.badRequest("invalid Request")
+                    }
+                } catch (err){
+                    return Boom.badRequest(err);
+                }
+            },
+        },
 
     ]);
 

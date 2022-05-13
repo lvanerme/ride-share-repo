@@ -72,7 +72,7 @@ export default {
     becomeDriver() {
       this.$axios
         .post("/become-driver", {
-          email: this.email,
+          email: this.newDriver.email,
           licenseNumber: this.newDriver.licenseNumber,
           licenseState: this.newDriver.licenseState,
       })
