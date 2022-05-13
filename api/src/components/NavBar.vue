@@ -15,6 +15,27 @@
       Sign In
     </v-btn>
 
+    <v-menu v-if="!isLoggedIn" offset-y>
+      <template v-slot:activator="{ on }">
+        <v-btn text v-on="on">
+          <span>{{ "Rides" }}</span>
+          <v-icon dark>mdi-menu-down</v-icon>
+        </v-btn>
+      </template>
+
+      <v-list>
+        <v-list-item v-bind:to="{ name: 'rides-page' }">
+          <v-list-item-title>RideQuery</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item v-bind:to="{ name: 'sign-in' }">
+          <v-list-item-title>filler</v-list-item-title>
+        </v-list-item>
+        <v-divider></v-divider>
+
+      </v-list>
+    </v-menu>
+
     <v-menu v-if="isLoggedIn" offset-y>
       <template v-slot:activator="{ on }">
         <v-btn text v-on="on">

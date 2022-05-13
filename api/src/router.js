@@ -7,6 +7,7 @@ import Router from "vue-router";
 import Home from "./pages/Home.vue"
 import SignIn from "./pages/SignIn.vue";
 import SignUp from "./pages/SignUp.vue";
+import Rides from "./pages/Rides.vue";
 
 Vue.use(Router);
 
@@ -17,6 +18,6 @@ export default new Router({
         { name: "home-page", path: "/", component: Home },
         { name: "sign-up", path: "/sign-up", component: SignUp },
         { name: "sign-in", path: "/sign-in", component: SignIn },
-
+        { name: "rides-page", path: "/rides", component: Rides },
     ]
 });
