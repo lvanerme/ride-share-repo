@@ -15,6 +15,15 @@
       Sign In
     </v-btn>
 
+    <v-btn v-if="isLoggedIn" text v-bind:to="{name: 'search-ride'}">
+      Search for a Ride
+    </v-btn>
+    <!--button to sign up to be a driver, appear if logged in and on the accounts page -->
+    <v-btn v-if="isLoggedIn" text v-bind:to="{name: 'become-driver'}">
+      Become a Driver
+    </v-btn>
+
+
     <v-menu v-if="isLoggedIn" offset-y>
       <template v-slot:activator="{ on }">
         <v-btn text v-on="on">

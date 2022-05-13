@@ -23,7 +23,7 @@ class User extends Model {
                 modelClass: __dirname+'/Driver',
                 join: {
                     from: 'User.id',
-                    to: 'Driver.id'
+                    to: 'Driver.userId'
                 }
             }
         };

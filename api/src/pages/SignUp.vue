@@ -3,8 +3,6 @@
     <div>
       <h4 class="display-1">Sign Up</h4>
 
-      <instructions details="Sign up for our nifty site." />
-
       <v-form v-model="valid">
         <v-text-field
             v-model="newMember.firstName"
@@ -25,11 +23,16 @@
         >
         </v-text-field>
         <v-text-field
+            v-model="newMember.phoneNumber"
+            v-bind:rules="rules.phoneNumber"
+            label="Your phone number"
+        ></v-text-field>
+        <v-text-field
             v-model="newMember.password"
             v-bind:rules="rules.password"
             error-count="10"
             type="password"
-            label="Non-trivial password"
+            label="Password"
             required
         >
         </v-text-field>
@@ -63,13 +66,8 @@
 </template>
 
 <script>
-import Instructions from "../components/Instructions.vue";
 
 export default {
-  name: "SignUpPage",
-  components: {
-    Instructions, // Use the Instructions component we just imported
-  },
   data: function () {
     return {
       valid: false, // Are all the fields in the form valid?
@@ -79,6 +77,7 @@ export default {
         firstName: "",
         lastName: "",
         email: "",
+        phoneNumber: "",
         password: "",
       },
 
@@ -101,6 +100,9 @@ export default {
         email: [
           (val) => /\w{3,}@\w{3,}(?:.\w{3,})+$/.test(val) || "Invalid e-mail",
         ],
+        phoneNumber: [
+          (val) => /^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$/.test(val) || "Invalid phone number"
+        ],
         password: [
           (val) => /[A-Z]/.test(val) || "Need upper case letter",
           (val) => /[a-z]/.test(val) || "Need lower case letter",
@@ -118,10 +120,11 @@ export default {
 
       // Post the content of the form to the Hapi server.
       this.$axios
-          .post("/accounts", {
+          .post("/signup", {
             firstName: this.newMember.firstName,
             lastName: this.newMember.lastName,
             email: this.newMember.email,
+            phoneNumber: this.newMember.phoneNumber,
             password: this.newMember.password,
           })
           .then((result) => {
