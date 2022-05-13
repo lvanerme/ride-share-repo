@@ -1,6 +1,6 @@
 const knex = require('knex')({
 	client: 'pg',
-	connection:{
+	connection: {
 		host: 'pg.cse.taylor.edu',
 		user: 'lance_vanermen',
 		password: 'futegiro',
@@ -24,7 +24,7 @@ const { Ride } = require("./models/Ride");
 const { State } = require("./models/State");
 const { User } = require("./models/User");
 const { Vehicle } = require("./models/Vehicle");
-const {VehicleType} = require("./models/VehicleType");
+const { VehicleType } = require("./models/VehicleType");
 
 
 //Configure Hapi.
@@ -32,25 +32,25 @@ const Hapi = require("@hapi/hapi");
 const Boom = require("@hapi/boom");
 const Joi = require('joi');
 
-const server = Hapi.server( {
+const server = Hapi.server({
 	host: "localhost",
 	port: 3000,
 	routes: {
 		cors: true,
 	}
 })
-async function init(){
+async function init() {
 
 	await server.register(require("blipp"));
 
-	await server.register( {
+	await server.register({
 		plugin: require("hapi-pino"),
 		options: {
 			prettyPrint: true,
 		},
 	});
 
-	server.route( [
+	server.route([
 		{
 			method: "GET",
 			path: "/",
@@ -159,13 +159,15 @@ async function init(){
 			// },
 
 			handler: async (request, h) => {
-				const queryUserId = await User.query()
+				const queryUser = await User.query()
 					.select('id')
 					.where("email", request.payload.email)
-				console.log(queryUserId)
-				const isDriver = await queryUserId
+					.first();
+				console.log(queryUser)
+				
+				const isDriver = await queryUser
 					.$relatedQuery('Driver')
-					.where("Driver.userId", queryUserId);
+					.where("Driver.userId", queryUser.id);
 
 				if (isDriver) {
 					return {
@@ -175,7 +177,7 @@ async function init(){
 				}
 
 				const newDriver = await Driver.query().insert({
-					userId: queryUserId,
+					userId: queryUser.id,
 					licenseNumber: request.payload.licenseNumber,
 					licenseState: request.payload.licenseState
 				});
@@ -195,41 +197,41 @@ async function init(){
 		}
 
 
-/*
-		{
-			method: "GET",
-			path: "/search-ride",
-			config:{
-				description: "Search for a ride",
-				validate: {
-					payload: Joi.object({
-							location: Joi.string().min(3).required(),
-					}),
-				},
-			},
-			handler: async (request, h) => {
-				const locateRide = await Ride.query()//fix this to seach based on location, need joining
-					.where("fromLocationId", request.payload.location)
-				if(locateRide){
-					return{
-						ok: true,
-						msge: "Location retrieved successfully",
-						results: {
-							date: locateRide.date,
-							time: locateRide.time
+		/*
+				{
+					method: "GET",
+					path: "/search-ride",
+					config:{
+						description: "Search for a ride",
+						validate: {
+							payload: Joi.object({
+									location: Joi.string().min(3).required(),
+							}),
+						},
+					},
+					handler: async (request, h) => {
+						const locateRide = await Ride.query()//fix this to seach based on location, need joining
+							.where("fromLocationId", request.payload.location)
+						if(locateRide){
+							return{
+								ok: true,
+								msge: "Location retrieved successfully",
+								results: {
+									date: locateRide.date,
+									time: locateRide.time
+								}
+							};
 						}
-					};
-				}
-				else{
-					return{
-						ok: false,
-						msge: "Invalid Location",
-					};
-				}
-
-			},
-		},
-*/
+						else{
+							return{
+								ok: false,
+								msge: "Invalid Location",
+							};
+						}
+		
+					},
+				},
+		*/
 
 
 	]);
