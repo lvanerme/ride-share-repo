@@ -20,7 +20,7 @@ import adminUsers from "./pages/adminUsers";
 import adminRides from "./pages/adminRides";
 import adminDrivers from "./pages/adminDrivers";
 import adminPassengers from "./pages/adminPassengers";
-
+import ViewSearchRide from "./pages/ViewSearchRide"
 
 Vue.use(Router);
 
@@ -44,5 +44,6 @@ export default new Router({
         { name: "admin-Rides", path: "/admin-Rides", component: adminRides},
         { name: "admin-Drivers", path: "/admin-Drivers", component: adminDrivers},
         { name: "admin-Passengers", path: "/admin-Passengers", component: adminPassengers},
+        { name: "view-search-ride", path: "/view-search-ride", component: ViewSearchRide}
     ]
 });

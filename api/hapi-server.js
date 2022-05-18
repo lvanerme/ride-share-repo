@@ -194,44 +194,66 @@ async function init() {
 					};
 				}
 			}
-		}
-
-
-		/*
-				{
-					method: "GET",
-					path: "/search-ride",
-					config:{
-						description: "Search for a ride",
-						validate: {
-							payload: Joi.object({
-									location: Joi.string().min(3).required(),
-							}),
-						},
-					},
-					handler: async (request, h) => {
-						const locateRide = await Ride.query()//fix this to seach based on location, need joining
-							.where("fromLocationId", request.payload.location)
-						if(locateRide){
-							return{
-								ok: true,
-								msge: "Location retrieved successfully",
-								results: {
-									date: locateRide.date,
-									time: locateRide.time
-								}
-							};
-						}
-						else{
-							return{
-								ok: false,
-								msge: "Invalid Location",
-							};
-						}
+		},
 		
-					},
+			{
+				method: "GET",
+				path: "/view-search-ride",
+				// config:{
+				// 	description: "Search for a ride",
+				// 	validate: {
+				// 		payload: Joi.object({
+				// 				location: Joi.string().min(3).required(),
+				// 		}),
+				// 	},
+				// },
+				handler: async (request, h) => {
+					
+					// return await Location.query();
+
+					
+					const location = await Location.query().select('id')
+						.modify(function(queryBuilder){
+							if (request.query.name){
+								queryBuilder.where('name',request.query.name)
+								// console.log("THERE IS A NAME IN THE QUERY")
+							}
+							if (request.query.address){
+								queryBuilder.where('address',request.query.address)
+							}
+							if (request.query.city){
+								queryBuilder.where('city',request.query.city)
+							} 
+							if (request.query.state){
+								// console.log("THERE IS A state IN THE QUERY")
+								queryBuilder.where('state',request.query.state)
+							} 
+							if (request.query.zipCode){
+								queryBuilder.where('zipCode',request.query.zipCode)
+							} }).first()
+
+					// console.log(location);
+					
+					// console.log(request.query)
+
+
+					const locRides = await location.$relatedQuery('Ride')
+						.where("Ride.fromLocationId", location.id)
+
+					// console.log(locRides);
+					if(locRides){
+						return locRides;
+					}
+					else {
+						return {
+							ok: false
+						}
+					}
+
+
 				},
-		*/
+			},
+		
 
 
 	]);
