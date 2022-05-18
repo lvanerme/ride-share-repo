@@ -62,21 +62,7 @@ class Ride extends Model {
                         from: 'Ride.vehicleId',
                         to: 'Vehicle.id'
                     }
-<<<<<<< HEAD
-                },
-                to: 'Driver.id'
-            },
-            Location: {
-                relation: Model.BelongsToOneRelation,
-                modelClass: __dirname + '/Location',
-                join:{
-                    from: 'Ride.fromLocationId',
-                    join: 'Location.id'
-                }
-            }
-=======
                     },
->>>>>>> 5e0b9337a6e72e5b58b4582dc8df7334a5634312
         };
     }
 }

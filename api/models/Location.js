@@ -10,11 +10,6 @@ class Location extends Model {
                 relation: Model.HasManyRelation,
                 modelClass: __dirname + '/Ride',
                 join: {
-<<<<<<< HEAD
-                    from: 'Location.id',
-                    to: 'Ride.fromLocationId',
-               }
-=======
                     from: [
                         'Location.id'
                     ],
@@ -36,7 +31,6 @@ class Location extends Model {
                     ]
 
                 }
->>>>>>> 5e0b9337a6e72e5b58b4582dc8df7334a5634312
             }
         }
     }

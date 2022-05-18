@@ -478,6 +478,137 @@ async function init() {
 			},
 		},
 
+		{
+			method: "GET",
+			path: "/admin-Vehicles",
+			handler: async (request, h) => {
+
+				if (request.query.isAdmin === "true") {
+					const vehicles = await Vehicle.query()
+					if(vehicles){
+						return vehicles
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method: "GET",
+			path: "/admin-Vehicle-Type",
+			handler: async (request, h) => {
+
+				if (request.query.isAdmin === "true") {
+					const vehicleTypes = await VehicleType.query()
+					if(vehicleTypes){
+						return vehicleTypes
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method: "GET",
+			path: "/admin-Drivers",
+			handler: async (request, h) => {
+
+				if (request.query.isAdmin === "true") {
+					const drivers = await Driver.query()
+					if(drivers){
+						return drivers
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method: "GET",
+			path: "/admin-Users",
+			handler: async (request, h) => {
+
+				if (request.query.isAdmin === "true") {
+					const users = await User.query()
+					if(users){
+						return users
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method: "GET",
+			path: "/admin-Locations",
+			handler: async (request, h) => {
+
+				if (request.query.isAdmin === "true") {
+					const locs = await Location.query()
+					if(locs){
+						return locs
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method: "GET",
+			path: "/admin-Rides",
+			handler: async (request, h) => {
+
+				if (request.query.isAdmin === "true") {
+					const rides = await Ride.query()
+					if(rides){
+						return rides
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
+				}
+			}
+		},
 
 	]);
 
