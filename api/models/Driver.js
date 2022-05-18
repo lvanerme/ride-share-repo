@@ -26,9 +26,9 @@ class Driver extends Model {
                     through: {
                         from: 'Drivers.driverId',
                         to: 'Drivers.rideId'
-                    }
-                },
-                to: 'Ride.id'
+                    },
+                    to: 'Ride.id'
+                }
             },
         };
     }

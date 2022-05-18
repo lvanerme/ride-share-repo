@@ -75,7 +75,7 @@
     <v-menu v-if="isLoggedIn" offset-y>
       <template v-slot:activator="{ on }">
         <v-btn text v-on="on">
-          <v-icon dark>mdi-account</v-icon>
+          <v-icon dark></v-icon>
           <span>Rides</span>
           <v-icon dark>mdi-menu-down</v-icon>
         </v-btn>
@@ -98,7 +98,7 @@
     <v-menu v-if="isLoggedIn" offset-y>
       <template v-slot:activator="{ on }">
         <v-btn text v-on="on">
-          <v-icon dark>mdi-account</v-icon>
+          <v-icon dark></v-icon>
           <span> Drivers </span>
           <v-icon dark>mdi-menu-down</v-icon>
         </v-btn>

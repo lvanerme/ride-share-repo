@@ -147,41 +147,116 @@ async function init() {
 		},
 
 		{
-			method: "POST",
-			path: "/become-driver",
-			// config:{
-			// 	description: "Become Driver",
-			// 	validate: {
-			// 		payload: Joi.object({
-			// 			email: Joi.string().email().required(),
-			// 		}),
-			// 	},
-			// },
+			method: "GET",
+			path: "/sign-up-ride",
+			options: {
+				description: "Sign up for rides that have not departed and have room"
+			},
 
 			handler: async (request, h) => {
+				const currentDateTime = new Date()
+				const dateOnly = currentDateTime.toJSON().slice(0,10)
+				const timeOnly = currentDateTime.toJSON().slice(11,23)
+
+				const allRides = await Ride.query()
+
+				let filteredRides = [];
+
+				for(let i=0; i < allRides.length; i++) {
+					const rideDate = allRides[i].date.toJSON().slice(0,10)
+					const rideTime = allRides[i].time
+
+					const rideCapacity = await allRides[i]
+						.$relatedQuery('Vehicle')
+						.select("capacity")
+						.first()
+
+					if(rideCapacity.capacity==allRides[i].numRiders) {
+						continue
+					}
+
+					if(rideDate > dateOnly) {
+						filteredRides.push(allRides[i])
+					} else if(rideDate === dateOnly) {
+						if(rideTime > timeOnly) {
+							filteredRides.push(allRides[i])
+						}
+					}
+				}
+
+				for (let i=0; i < filteredRides.length; i++) {
+
+					const toLocation = await filteredRides[i]
+						.$relatedQuery('fromRidetoLocation')
+						.select('address')
+						.where("Location.id", filteredRides[i].toLocationId)
+						.first();
+
+					const fromLocation = await filteredRides[i]
+						.$relatedQuery('fromRidefromLocation')
+						.select('address')
+						.where("Location.id", filteredRides[i].fromLocationId)
+						.first();
+
+					filteredRides[i].toLocationId = toLocation.address
+					filteredRides[i].fromLocationId = fromLocation.address
+				}
+				if(filteredRides){
+					return filteredRides
+				} else {
+					return {
+						ok: false
+					};
+				}
+			}
+		},
+
+		// {
+		// 	method: "POST",
+		// 	path: "/sign-up-ride/{id}",
+		// 	option: {
+		// 		description: "Sign up for a ride"
+		// 	},
+		// 	handler: async(request, h) => {
+		//
+		// 	}
+		// },
+
+		{
+			method: "POST",
+			path: "/become-driver",
+			options:{
+				description: "Become Driver",
+			},
+			handler: async (request, h) => {
+				//query gets the user for the params passed in
 				const queryUser = await User.query()
 					.select('id')
 					.where("email", request.payload.email)
 					.first();
 				console.log(queryUser)
-				
+
+				//query checks if that user is already a driver
 				const isDriver = await queryUser
 					.$relatedQuery('Driver')
 					.where("Driver.userId", queryUser.id);
 
-				if (isDriver) {
+				//if resulting query is not ' ' then they are already a driver, we abort
+				if (isDriver != '') {
 					return {
 						ok: false,
 						msge: `Driver already exists with given email`,
 					};
 				}
 
+				//else we post them as a new driver in the database
 				const newDriver = await Driver.query().insert({
 					userId: queryUser.id,
 					licenseNumber: request.payload.licenseNumber,
 					licenseState: request.payload.licenseState
 				});
 
+				//we deal with if the request suceeds for posting them to the database
 				if (newDriver) {
 					return {
 						ok: true,
@@ -194,50 +269,219 @@ async function init() {
 					};
 				}
 			}
-		}
+		},
+		{
+			method: "GET",
+			path: "/view-driving-rides",
+			options: {
+				description: "Get all rides that the user is driving for"
+			},
+			handler: async (request, h) => {
+				const currentUser = await User.query()
+					.select('id')
+					.where("email", request.query.currentAccount)
+					.first();
+
+				const currentDriver = await currentUser
+					.$relatedQuery('Driver')
+					.where('userId', currentUser.id)
+					.first()
+
+				const drivingRides = await currentDriver
+					.$relatedQuery('Ride')
+					.where("Drivers.driverId", currentDriver.id)
+
+				for (let i=0; i < drivingRides.length; i++) {
+
+					const toLocation = await drivingRides[i]
+						.$relatedQuery('fromRidetoLocation')
+						.select('address')
+						.where("Location.id", drivingRides[i].toLocationId)
+						.first();
+
+					const fromLocation = await drivingRides[i]
+						.$relatedQuery('fromRidefromLocation')
+						.select('address')
+						.where("Location.id", drivingRides[i].fromLocationId)
+						.first();
+
+					drivingRides[i].toLocationId = toLocation.address
+					drivingRides[i].fromLocationId = fromLocation.address
+
+				}
 
 
-		/*
-				{
-					method: "GET",
-					path: "/search-ride",
-					config:{
-						description: "Search for a ride",
-						validate: {
-							payload: Joi.object({
-									location: Joi.string().min(3).required(),
-							}),
-						},
-					},
-					handler: async (request, h) => {
-						const locateRide = await Ride.query()//fix this to seach based on location, need joining
-							.where("fromLocationId", request.payload.location)
-						if(locateRide){
-							return{
-								ok: true,
-								msge: "Location retrieved successfully",
-								results: {
-									date: locateRide.date,
-									time: locateRide.time
-								}
-							};
+				if(drivingRides){
+					return drivingRides
+				} else {
+					return {
+						ok: false
+					};
+				}
+			}
+
+		},
+		{
+			method:"DELETE",
+			path:"/unrelate-drivingRides/{id}",
+			options: {
+				description: "Unrelate driving rides on drivers table"
+			},
+			handler: async (request,h) => {
+				const ride = await Ride.query()
+					.select('id')
+					.where('id', request.params.id)
+					.first()
+
+				const unrelate = await ride.$relatedQuery('Driver')
+					.unrelate()
+					.where('Drivers.rideId', request.params.id)
+				if(unrelate) {
+					return {
+						ok: true
+					};
+				} else {
+					return {
+						ok: false
+					};
+				}
+			}
+		},
+
+
+		{
+			method: "GET",
+			path: "/view-your-rides",
+			options:{
+				description: "Get all rides that user is signed up for"
+			},
+			handler: async (request, h) => {
+				const currentUser = await User.query()
+					.select('id')
+					.where("email", request.query.currentAccount)
+					.first();
+
+				const userRides = await currentUser
+					.$relatedQuery('Ride')
+					.where("Passenger.userId", currentUser.id)
+
+				for (let i=0; i < userRides.length; i++) {
+
+					const toLocation = await userRides[i]
+						.$relatedQuery('fromRidetoLocation')
+						.select('address')
+						.where("Location.id", userRides[i].toLocationId)
+						.first();
+
+					const fromLocation = await userRides[i]
+						.$relatedQuery('fromRidefromLocation')
+						.select('address')
+						.where("Location.id", userRides[i].fromLocationId)
+						.first();
+
+					userRides[i].toLocationId = toLocation.address
+					userRides[i].fromLocationId = fromLocation.address
+				}
+
+				if(userRides){
+					return userRides
+				} else {
+					return {
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method:"DELETE",
+			path:"/unrelate-rides/{id}",
+			options: {
+				description: "Unrelate rides on user rides tables"
+			},
+			handler: async (request,h) => {
+				const ride = await Ride.query()
+					.select('id')
+					.where('id', request.params.id)
+					.first()
+
+				const unrelate = await ride.$relatedQuery('User')
+					.unrelate()
+					.where('Passenger.userId', request.params.id)
+				if(unrelate) {
+					return {
+						ok: true
+					};
+				} else {
+					return {
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method: "GET",
+			path: "/search-ride",
+			// config:{
+			// 	description: "Search for a ride",
+			// 	validate: {
+			// 		payload: Joi.object({
+			// 				location: Joi.string().min(3).required(),
+			// 		}),
+			// 	},
+			// },
+			handler: async (request, h) => {
+
+				// return await Location.query();
+
+
+				const location = await Location.query().select('id')
+					.modify(function(queryBuilder){
+						if (request.query.name){
+							queryBuilder.where('name',request.query.name)
+							// console.log("THERE IS A NAME IN THE QUERY")
 						}
-						else{
-							return{
-								ok: false,
-								msge: "Invalid Location",
-							};
+						if (request.query.address){
+							queryBuilder.where('address',request.query.address)
 						}
-		
-					},
-				},
-		*/
+						if (request.query.city){
+							queryBuilder.where('city',request.query.city)
+						}
+						if (request.query.state){
+							// console.log("THERE IS A state IN THE QUERY")
+							queryBuilder.where('state',request.query.state)
+						}
+						if (request.query.zipCode){
+							queryBuilder.where('zipCode',request.query.zipCode)
+						} }).first()
+
+				// console.log(location);
+
+				// console.log(request.query)
+
+
+				const locRides = await location.$relatedQuery('fromRideLocation')
+					.where("Ride.fromLocationId", location.id)
+
+				// console.log(locRides);
+				if(locRides){
+					return locRides;
+				}
+				else {
+					return {
+						ok: false
+					}
+				}
+
+
+			},
+		},
 
 
 	]);
 
 	await server.start();
-};
+}
 
 init()
-
