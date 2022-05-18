@@ -26,6 +26,14 @@ class Vehicle extends Model {
                     to: 'Ride.vehicle.id'
                 }
             },
+            Vehicle: {
+                relation: Model.BelongsToOneRelation,
+                modelClass: __dirname + '/Vehicle',
+                join: {
+                    from: 'Ride.vehicleId',
+                    to: 'Vehicle.id'
+                }
+            },
         };
     }
 }  

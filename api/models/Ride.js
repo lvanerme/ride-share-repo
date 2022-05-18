@@ -26,7 +26,43 @@ class Ride extends Model {
                     through: {
                         from: 'Drivers.rideId',
                         to: 'Drivers.driverId'
+                    },
+                    to: 'Driver.id'
+                }
+            },
+            fromRidetoLocation: {
+                relation: Model.BelongsToOneRelation,
+                modelClass: __dirname + '/Location',
+                join: {
+                    from: [
+                        'Ride.toLocationId'
+                    ],
+                    to: [
+                        'Location.id'
+                    ]
+
+                }
+            },
+            fromRidefromLocation: {
+                relation: Model.BelongsToOneRelation,
+                modelClass: __dirname + '/Location',
+                join: {
+                    from: [
+                        'Ride.fromLocationId'
+                    ],
+                    to: [
+                        'Location.id'
+                    ]
+                }
+            },
+            Vehicle: {
+                    relation: Model.HasManyRelation,
+                    modelClass: __dirname + '/Vehicle',
+                    join: {
+                        from: 'Ride.vehicleId',
+                        to: 'Vehicle.id'
                     }
+<<<<<<< HEAD
                 },
                 to: 'Driver.id'
             },
@@ -38,6 +74,9 @@ class Ride extends Model {
                     join: 'Location.id'
                 }
             }
+=======
+                    },
+>>>>>>> 5e0b9337a6e72e5b58b4582dc8df7334a5634312
         };
     }
 }
