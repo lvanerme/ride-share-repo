@@ -22,6 +22,19 @@
         </template>
       </v-data-table>
 
+      <br>
+
+      <h4 class="display-0">Create New Vehicle Type</h4>
+      <v-form v-model="valid">
+        <v-text-field
+            v-model="newVehicleType.type"
+            label="Type"
+        />
+      </v-form>
+      <v-btn v-on:click="handleSubmit"
+        >Create
+      </v-btn>
+
       <v-snackbar v-model="snackbar.show">
         {{ snackbar.text }}
         <v-btn color="blue" text @click="snackbar.show = false">
@@ -44,6 +57,15 @@ export default {
       ],
       vehicles: [],
 
+
+      dialogHeader: "<no dialogHeader>",
+      dialogText: "<no dialogText>",
+      dialogVisible: false,
+
+      newVehicleType:{
+        type: "",
+      },
+
       snackbar:{
         show: false,
         text: ""
@@ -63,6 +85,47 @@ export default {
       }).catch(err => console.log(err))
   },
 
+  methods: {
+    // Invoked when the user clicks the 'Sign Up' button.
+    handleSubmit: function () {
+      // Haven't been successful yet.
+      this.vehicleTypeCreated = false;
+
+      // Post the content of the form to the Hapi server.
+      this.$axios
+          .post("/admin-Vehicle-Type", {
+              type: this.newVehicleType.type,
+          })
+          .then((result) => {
+            // Based on whether things worked or not, show the
+            // appropriate dialog.
+            if (result.data.ok) {
+              this.showDialog("Success", result.data.msge);
+              this.vehicleTypeCreated = true;
+            } else {
+              this.showDialog("Sorry", result.data.msge);
+            }
+          })
+          .catch((err) => this.showDialog("Failed", err));
+    },
+
+    // Helper method to display the dialog box with the appropriate content.
+    showDialog: function (header, text) {
+      this.dialogHeader = header;
+      this.dialogText = text;
+      this.dialogVisible = true;
+    },
+
+    // Invoked by the "Okay" button on the dialog; dismiss the dialog
+    // and navigate to the home page.
+    hideDialog: function () {
+      this.dialogVisible = false;
+      if (this.vehicleCreated) {
+        
+        this.$router.push({ name: "admin-Vehicles" }); 
+      }
+    },
+  },
 
 }
 </script>

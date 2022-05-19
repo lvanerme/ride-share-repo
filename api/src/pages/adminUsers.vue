@@ -29,6 +29,39 @@
         </template>
       </v-data-table>
 
+      <br>
+      <h4 class="display-0">Create New User</h4>
+      <v-form v-model="valid">
+        <v-text-field
+            v-model="newUser.firstName"
+            label="First Name"
+            type="text"
+        />
+        <v-text-field
+            v-model="newUser.lastName"
+            label="Last Name"
+        />
+        <v-text-field
+            v-model="newUser.email"
+            label="Email"
+        />
+        <v-text-field
+            v-model="newUser.password"
+            label="Password"
+        />
+        <v-text-field
+            v-model="newUser.phone"
+            label="Phone Number"
+        />
+        <v-text-field
+            v-model="newUser.isAdmin"
+            label="Admin?"
+        />
+      </v-form>
+      <v-btn v-on:click="handleSubmit"
+        >Create
+      </v-btn>
+
       <v-snackbar v-model="snackbar.show">
         {{ snackbar.text }}
         <v-btn color="blue" text @click="snackbar.show = false">
@@ -56,6 +89,19 @@ export default {
       ],
       users: [],
 
+      userCreated: false,
+      dialogHeader: "<no dialogHeader>",
+      dialogText: "<no dialogText>",
+      dialogVisible: false,
+
+      newUser:{
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        phone: "",
+        isAdmin: "",
+      },
       snackbar:{
         show: false,
         text: ""
@@ -75,11 +121,56 @@ export default {
           email: user.email,
           password: user.password,
           phone: user.phone,
-          isAdmin: user.licenseState,
+          isAdmin: user.isAdmin,
         }));
       }).catch(err => console.log(err))
   },
+  methods: {
+    // Invoked when the user clicks the 'Sign Up' button.
+    handleSubmit: function () {
+      // Haven't been successful yet.
+      this.UserCreated = false;
 
+      // Post the content of the form to the Hapi server.
+      this.$axios
+          .post("/admin-Users", {
+              firstName: this.newUser.firstName,
+              lastName: this.newUser.lastName,
+              email: this.newUser.email,
+              password: this.newUser.password,
+              phone: this.newUser.phone,
+              isAdmin: this.newUser.isAdmin,
+          })
+          .then((result) => {
+            // Based on whether things worked or not, show the
+            // appropriate dialog.
+            if (result.data.ok) {
+              this.showDialog("Success", result.data.msge);
+              this.UserCreated = true;
+            } else {
+              this.showDialog("Sorry", result.data.msge);
+            }
+          })
+          .catch((err) => this.showDialog("Failed", err));
+    },
+
+    // Helper method to display the dialog box with the appropriate content.
+    showDialog: function (header, text) {
+      this.dialogHeader = header;
+      this.dialogText = text;
+      this.dialogVisible = true;
+    },
+
+    // Invoked by the "Okay" button on the dialog; dismiss the dialog
+    // and navigate to the home page.
+    hideDialog: function () {
+      this.dialogVisible = false;
+      if (this.vehicleCreated) {
+        
+        this.$router.push({ name: "admin-Vehicles" }); 
+      }
+    },
+  },
 
 }
 </script>

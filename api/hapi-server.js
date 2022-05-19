@@ -610,6 +610,133 @@ async function init() {
 			}
 		},
 
+
+		{
+			method: "POST",
+			path: "/admin-Vehicles",
+			config: {
+				description: "Create new vehicle",
+			},	
+
+			handler: async (request, h) => {
+				// console.log("ASDFASDFASDFASDFASDFASDFA")
+				// console.log(request.payload);
+				// console.log("ASDFASDFASDFASDFASDFASDFA")
+
+				const existingType = await VehicleType.query()
+					.where("id", request.payload.vehicleTypeId)
+					.first();
+				if (!existingType) {
+					return {
+						ok: false,
+						msge: `Vehicle with '${request.payload.vehicleTypeId}' is not real`,
+					};
+				} 
+				// if (request.query.isAdmin==="true"){
+					const newVehicles = await Vehicle.query().insert({
+						make: request.payload.make,
+						model: request.payload.model,
+						color: request.payload.color,
+						vehicleTypeId: request.payload.vehicleTypeId,
+						capacity: request.payload.capacity,
+						mpg: request.payload.mpg,
+						licenseState: request.payload.licenseState,
+						liscensePlate: request.payload.liscensePlate,
+					});
+					if (newVehicles) {
+						return {
+							ok: true,
+							msge: `Vehicle create`,
+						};
+					} else {
+						return {
+							ok: false,
+							msge: `Couldn't create vehicle`,
+						};
+					}
+			}
+		
+		},
+
+		{
+			method: "POST",
+			path: "/admin-Vehicle-Type",
+			config: {
+				description: "Create new vehicle type",
+			},	
+
+			handler: async (request, h) => {
+
+				const existingType = await VehicleType.query()
+					.where("type", request.payload.type)
+					.first();
+				if (existingType) {
+					return {
+						ok: false,
+						msge: `Vehicle with '${request.payload.vehicleTypeId}' is not real`,
+					};
+				} 
+				// if (request.query.isAdmin==="true"){
+					const newVehicles = await VehicleType.query().insert({
+						type: request.payload.type,
+					});
+					if (newVehicles) {
+						return {
+							ok: true,
+							msge: `Vehicle type created`,
+						};
+					} else {
+						return {
+							ok: false,
+							msge: `Couldn't create vehicle type`,
+						};
+					}
+			}
+		
+		},
+
+		{
+			method: "POST",
+			path: "/admin-Users",
+			config: {
+				description: "Create new User",
+			},	
+
+			handler: async (request, h) => {
+
+				const existingType = await User.query()
+					.where("email", request.payload.email)
+					.first();
+				if (existingType) {
+					return {
+						ok: false,
+						msge: `User with '${request.payload.email}' already exists`,
+					};
+				} 
+				// if (request.query.isAdmin==="true"){
+					const newVehicles = await User.query().insert({
+						firstName: request.payload.firstName,
+						lastName: request.payload.lastName,
+						email: request.payload.email,
+						phone: request.payload.phone,
+						password: request.payload.password,
+						isAdmin: request.payload.isAdmin
+					});
+					if (newVehicles) {
+						return {
+							ok: true,
+							msge: `Vehicle type created`,
+						};
+					} else {
+						return {
+							ok: false,
+							msge: `Couldn't create vehicle type`,
+						};
+					}
+			}
+		
+		}
+
 	]);
 
 	await server.start();
