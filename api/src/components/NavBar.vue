@@ -65,6 +65,12 @@
           <v-list-item-title>Passengers</v-list-item-title>
         </v-list-item>
 
+        <v-divider></v-divider>
+
+        <v-list-item v-bind:to="{ name: 'admin-authorize-vehicle' }">
+          <v-list-item-title>Authorize a vehicle</v-list-item-title>
+        </v-list-item>
+
       </v-list>
     </v-menu>
 
@@ -135,12 +141,6 @@
       </template>
 
       <v-list>
-        <v-list-item v-bind:to="{ name: 'accounts' }">
-          <v-list-item-title>Accounts</v-list-item-title>
-        </v-list-item>
-
-        <v-divider></v-divider>
-
         <v-list-item @click="signOut">
           <v-list-item-title>Sign Out</v-list-item-title>
         </v-list-item>

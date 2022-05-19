@@ -20,6 +20,7 @@ import adminUsers from "./pages/adminUsers";
 import adminRides from "./pages/adminRides";
 import adminDrivers from "./pages/adminDrivers";
 import adminPassengers from "./pages/adminPassengers";
+import adminAuthorizeVehicle from "./pages/adminAuthorizeVehicle";
 
 
 Vue.use(Router);
@@ -33,16 +34,17 @@ export default new Router({
         { name: "sign-in", path: "/sign-in", component: SignIn },
         { name: "search-ride", path: "/search-ride", component: SearchRide},
         { name: "sign-up-ride", path: "/sign-up-ride", component: SignUpRide },
-        { name: "become-driver", path: "/become-driver", component: BecomeDriver},
-        { name: "sign-up-drive", path: "/sign-up-drive", component: SignUpDrive},
-        { name: "view-driving-rides", path: "/view-driving-rides", component: ViewDrivingRides},
-        { name: "view-your-rides", path: "/view-your-rides", component: ViewYourRides},
-        { name: "admin-Vehicles", path: "/admin-Vehicles", component: adminVehicles},
-        { name: "admin-Vehicle-Type", path: "/admin-Vehicle-Type", component: adminVehicleType},
-        { name: "admin-Locations", path: "/admin-Locations", component: adminLocations},
-        { name: "admin-Users", path: "/admin-Users", component: adminUsers},
-        { name: "admin-Rides", path: "/admin-Rides", component: adminRides},
-        { name: "admin-Drivers", path: "/admin-Drivers", component: adminDrivers},
-        { name: "admin-Passengers", path: "/admin-Passengers", component: adminPassengers},
+        { name: "become-driver", path: "/become-driver", component: BecomeDriver },
+        { name: "sign-up-drive", path: "/sign-up-drive", component: SignUpDrive },
+        { name: "view-driving-rides", path: "/view-driving-rides", component: ViewDrivingRides },
+        { name: "view-your-rides", path: "/view-your-rides", component: ViewYourRides },
+        { name: "admin-Vehicles", path: "/admin-Vehicles", component: adminVehicles },
+        { name: "admin-Vehicle-Type", path: "/admin-Vehicle-Type", component: adminVehicleType },
+        { name: "admin-Locations", path: "/admin-Locations", component: adminLocations },
+        { name: "admin-Users", path: "/admin-Users", component: adminUsers },
+        { name: "admin-Rides", path: "/admin-Rides", component: adminRides },
+        { name: "admin-Drivers", path: "/admin-Drivers", component: adminDrivers },
+        { name: "admin-Passengers", path: "/admin-Passengers", component: adminPassengers },
+        { name: "admin-authorize-vehicle", path: "/admin-authorize-vehicle", component: adminAuthorizeVehicle}
     ]
 });

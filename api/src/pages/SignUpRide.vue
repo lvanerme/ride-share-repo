@@ -19,7 +19,7 @@
             <td>{{ item.toLocationId }}</td>
             <td>{{ item.fromLocationId }}</td>
             <td>
-              <v-btn color="orange" text @click="snackbar.show = false">
+              <v-btn color="orange" text @click="signUpForRide(item)">
                 Sign up
               </v-btn>
             </td>
@@ -28,7 +28,7 @@
       </v-data-table>
 
       <v-snackbar v-model="snackbar.show">
-        {{ snackbar.text }}
+        {{ snackbar.msge }}
         <v-btn color="blue" text @click="snackbar.show = false">
           Close
         </v-btn>
@@ -63,10 +63,8 @@ export default {
   },
 
   mounted: function() {
-    this.$axios.get("/sign-up-ride", { params: {
-        currentAccount: this.$store.state.currentAccount.email
-      }
-    }).then(response => {
+    this.$axios.get("/sign-up-ride")
+    .then(response => {
       this.rides = response.data.map(ride => ({
         id: ride.id,
         date: ride.date,
@@ -81,14 +79,23 @@ export default {
   },
 
   methods: {
+    signUpForRide(item) {
+      this.$axios.post(`/sign-up-rideBtn/${item.id}/${this.$store.state.currentAccount.email}`)
+      .then(response => {
+        if(response.data.ok) {
+          this.showSnackbar(response.data.msge)
+        } else {
+          this.showSnackbar(response.data.msge)
+        }
+      })
+    },
+
     showSnackbar(msge) {
       this.snackbar.msge = msge;
       this.snackbar.show = true;
     },
 
-    // signUpForRide(item) {
-    // }
-  },
+  }
 }
 </script>
 

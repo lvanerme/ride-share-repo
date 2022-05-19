@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-row justify="center">
-      <v-col cols="12" sm="8" md="6">
+      <v-col cols="12" sm="8" md="20">
         <v-card class="elevation-12">
           <v-toolbar color="purple" dark flat>
             <v-toolbar-title>Search for a ride</v-toolbar-title>
@@ -49,6 +49,8 @@
                     <td>{{ item.distance }}</td>
                     <td>{{ item.fuelPrice }}</td>
                     <td>{{ item.fee }}</td>
+                    <td>{{ item.toLocationId }}</td>
+                    <td>{{ item.fromLocationId }}</td>
                   </tr>
                 </template>
               </v-data-table>
@@ -81,7 +83,9 @@ export default {
         { text: "Time", value: "time" },
         { text: "Distance", value: "distance" },
         { text: "Fuel Price", value: "fuelPrice" },
-        { text: "Fee", value: "fee" }
+        { text: "Fee", value: "fee" },
+        { text: "From Location", value: "fromLocationId" },
+        { text: "To Location", value: "toLocationId" }
       ],
       rides: [],
 
@@ -102,7 +106,7 @@ export default {
   },
   methods: {
     search: function() {
-      // this.querySuccesful = false;
+
       this.$axios.get("/search-ride", {
         params: {
           name: this.rideQuery.name,
@@ -119,6 +123,8 @@ export default {
           distance: ride.distance,
           fuelPrice: ride.fuelPrice,
           fee: ride.fee,
+          toLocationId: ride.toLocationId,
+          fromLocationId: ride.fromLocationId
         }))
         console.log(this.rides)
 

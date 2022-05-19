@@ -148,12 +148,78 @@ async function init() {
 
 		{
 			method: "GET",
+			path: "/search-ride",
+			config:{
+				description: "Search for a ride",
+				// validate: {
+				// 	payload: Joi.object({
+				// 			location: Joi.string().min(3).required(),
+				// 	}),
+				// },
+			},
+			handler: async (request, h) => {
+
+				const location = await Location.query().select('id')
+					.modify(function(queryBuilder){
+						if (request.query.name){
+							queryBuilder.where('name',request.query.name)
+							// console.log("THERE IS A NAME IN THE QUERY")
+						}
+						if (request.query.address){
+							queryBuilder.where('address',request.query.address)
+						}
+						if (request.query.city){
+							queryBuilder.where('city',request.query.city)
+						}
+						if (request.query.state){
+							// console.log("THERE IS A state IN THE QUERY")
+							queryBuilder.where('state',request.query.state)
+						}
+						if (request.query.zipCode){
+							queryBuilder.where('zipCode',request.query.zipCode)
+						} }).first()
+
+				const locRides = await location.$relatedQuery('fromRideLocation')
+					.where("Ride.fromLocationId", location.id)
+
+				for (let i=0; i < locRides.length; i++) {
+
+					const toLocation = await locRides[i]
+						.$relatedQuery('fromRidetoLocation')
+						.select('address')
+						.where("Location.id", locRides[i].toLocationId)
+						.first();
+
+					const fromLocation = await locRides[i]
+						.$relatedQuery('fromRidefromLocation')
+						.select('address')
+						.where("Location.id", locRides[i].fromLocationId)
+						.first();
+
+					locRides[i].toLocationId = toLocation.address
+					locRides[i].fromLocationId = fromLocation.address
+				}
+
+				if(locRides){
+					return locRides;
+				}
+				else {
+					return {
+						ok: false
+					}
+				}
+			}
+		},
+
+		{
+			method: "GET",
 			path: "/sign-up-ride",
 			options: {
 				description: "Sign up for rides that have not departed and have room"
 			},
 
 			handler: async (request, h) => {
+
 				const currentDateTime = new Date()
 				const dateOnly = currentDateTime.toJSON().slice(0,10)
 				const timeOnly = currentDateTime.toJSON().slice(11,23)
@@ -171,7 +237,11 @@ async function init() {
 						.select("capacity")
 						.first()
 
-					if(rideCapacity.capacity==allRides[i].numRiders) {
+					const numRiders = await allRides[i]
+						.$relatedQuery('User')
+						.where('Passenger.rideId', allRides[i].id)
+
+					if(rideCapacity.capacity===numRiders.length) {
 						continue
 					}
 
@@ -211,16 +281,40 @@ async function init() {
 			}
 		},
 
-		// {
-		// 	method: "POST",
-		// 	path: "/sign-up-ride/{id}",
-		// 	option: {
-		// 		description: "Sign up for a ride"
-		// 	},
-		// 	handler: async(request, h) => {
-		//
-		// 	}
-		// },
+		{
+			method: "POST",
+			path: "/sign-up-rideBtn/{id}/{currentAccount}",
+			options: {
+				description: "Sign up for a ride"
+			},
+			handler: async(request, h) => {
+				const user = await User.query()
+					.select('id')
+					.where('email', request.params.currentAccount)
+					.first()
+
+				const ride = await Ride.query()
+					.select('id')
+					.where('id', request.params.id)
+					.first()
+
+				const addRide = await ride
+					.$relatedQuery('User')
+					.relate(user)
+
+				if(addRide){
+					return {
+						ok: true,
+						msge: "Successfully signed up for ride"
+					}
+				} else {
+					return {
+						ok: false,
+						msge: "Unable to sign up for ride"
+					}
+				}
+			}
+		},
 
 		{
 			method: "POST",
@@ -270,6 +364,146 @@ async function init() {
 				}
 			}
 		},
+
+		{
+			method: "GET",
+			path: "/sign-up-drive",
+			options: {
+				description: "Sign up to drive on any ride that has not departed, authorized vehicle, and remaining capacity"
+			},
+		handler: async (request, h) => {
+			const user = await User.query()
+				.select('id')
+				.where('email', request.query.currentAccount)
+				.first()
+
+			const driver = await user
+				.$relatedQuery('Driver')
+				.select('id')
+				.where('Driver.userId', user.id)
+				.first()
+
+			const authorized = await driver
+				.$relatedQuery('Vehicle')
+				.where('Authorization.driverId', driver.id)
+				.first()
+
+			if(authorized == null){
+				return {
+					ok: false,
+					msge: "Not authorized with vehicle"
+				}
+			}
+
+			const currentDateTime = new Date()
+			const dateOnly = currentDateTime.toJSON().slice(0,10)
+			const timeOnly = currentDateTime.toJSON().slice(11,23)
+
+			const allRides = await Ride.query()
+
+			let filteredRides = [];
+
+			for(let i=0; i < allRides.length; i++) {
+
+				const rideDate = allRides[i].date.toJSON().slice(0,10)
+				const rideTime = allRides[i].time
+
+				const rideCapacity = await allRides[i]
+					.$relatedQuery('Vehicle')
+					.select("capacity")
+					.first()
+
+				const numRiders = await allRides[i]
+					.$relatedQuery('User')
+					.where('Passenger.rideId', allRides[i].id)
+
+				if(rideCapacity.capacity===numRiders.length) {
+					continue
+				}
+
+				if(rideDate > dateOnly) {
+					filteredRides.push(allRides[i])
+				} else if(rideDate === dateOnly) {
+					if(rideTime > timeOnly) {
+						filteredRides.push(allRides[i])
+					}
+				}
+			}
+
+			for (let i=0; i < filteredRides.length; i++) {
+
+				const toLocation = await filteredRides[i]
+					.$relatedQuery('fromRidetoLocation')
+					.select('address')
+					.where("Location.id", filteredRides[i].toLocationId)
+					.first();
+
+				const fromLocation = await filteredRides[i]
+					.$relatedQuery('fromRidefromLocation')
+					.select('address')
+					.where("Location.id", filteredRides[i].fromLocationId)
+					.first();
+
+				filteredRides[i].toLocationId = toLocation.address
+				filteredRides[i].fromLocationId = fromLocation.address
+			}
+			if(filteredRides){
+				return {
+					ok: true,
+					rides: filteredRides
+				}
+			} else {
+				return {
+					ok: false
+				};
+			}
+		}
+
+		},
+
+		{
+			method: "POST",
+			path: "/sign-up-driveBtn/{id}/{currentAccount}",
+			options: {
+				description: "Sign up to drive for a ride"
+			},
+			handler: async (request, h) => {
+
+				const user = await User.query()
+					.select('id')
+					.where('email', request.params.currentAccount)
+					.first()
+
+				const driver = await user
+					.$relatedQuery('Driver')
+					.select('id')
+					.where('Driver.userId', user.id)
+					.first()
+
+				const ride = await Ride.query()
+					.select('id')
+					.where('id', request.params.id)
+					.first()
+
+				const addDriver = await ride
+					.$relatedQuery('Driver')
+					.relate(driver)
+
+				if(addDriver){
+					return {
+						ok: true,
+						msge: "Successfully signed up as driver"
+					}
+				} else {
+					return {
+						ok: false,
+						msge: "Unable to sign up as a driver"
+					}
+				}
+
+			}
+		},
+
 		{
 			method: "GET",
 			path: "/view-driving-rides",
@@ -419,65 +653,306 @@ async function init() {
 				}
 			}
 		},
+		{
+			method: "GET",
+			path: "/admin-Vehicles",
+			handler: async (request, h) => {
+
+				if (request.query.isAdmin === "true") {
+					const vehicles = await Vehicle.query()
+					if(vehicles){
+						return vehicles
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method: "POST",
+			path: "/admin-Vehicles",
+			config: {
+				description: "Create new vehicle",
+			},
+
+			handler: async (request, h) => {
+
+				const existingType = await VehicleType.query()
+					.where("id", request.payload.vehicleTypeId)
+					.first();
+				if (!existingType) {
+					return {
+						ok: false,
+						msge: `Vehicle with '${request.payload.vehicleTypeId}' is not real`,
+					};
+				}
+				// if (request.query.isAdmin==="true"){
+				const newVehicles = await Vehicle.query().insert({
+					make: request.payload.make,
+					model: request.payload.model,
+					color: request.payload.color,
+					vehicleTypeId: request.payload.vehicleTypeId,
+					capacity: request.payload.capacity,
+					mpg: request.payload.mpg,
+					licenseState: request.payload.licenseState,
+					liscensePlate: request.payload.liscensePlate,
+				});
+				if (newVehicles) {
+					return {
+						ok: true,
+						msge: `Vehicle create`,
+					};
+				} else {
+					return {
+						ok: false,
+						msge: `Couldn't create vehicle`,
+					};
+				}
+			}
+		},
 
 		{
 			method: "GET",
-			path: "/search-ride",
-			// config:{
-			// 	description: "Search for a ride",
-			// 	validate: {
-			// 		payload: Joi.object({
-			// 				location: Joi.string().min(3).required(),
-			// 		}),
-			// 	},
-			// },
+			path: "/admin-Vehicle-Type",
 			handler: async (request, h) => {
 
-				// return await Location.query();
-
-
-				const location = await Location.query().select('id')
-					.modify(function(queryBuilder){
-						if (request.query.name){
-							queryBuilder.where('name',request.query.name)
-							// console.log("THERE IS A NAME IN THE QUERY")
-						}
-						if (request.query.address){
-							queryBuilder.where('address',request.query.address)
-						}
-						if (request.query.city){
-							queryBuilder.where('city',request.query.city)
-						}
-						if (request.query.state){
-							// console.log("THERE IS A state IN THE QUERY")
-							queryBuilder.where('state',request.query.state)
-						}
-						if (request.query.zipCode){
-							queryBuilder.where('zipCode',request.query.zipCode)
-						} }).first()
-
-				// console.log(location);
-
-				// console.log(request.query)
-
-
-				const locRides = await location.$relatedQuery('fromRideLocation')
-					.where("Ride.fromLocationId", location.id)
-
-				// console.log(locRides);
-				if(locRides){
-					return locRides;
+				if (request.query.isAdmin === "true") {
+					const vehicleTypes = await VehicleType.query()
+					if(vehicleTypes){
+						return vehicleTypes
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
 				}
-				else {
+			}
+		},
+
+		{
+			method: "POST",
+			path: "/admin-Vehicle-Type",
+			config: {
+				description: "Create new vehicle type",
+			},
+
+			handler: async (request, h) => {
+
+				const existingType = await VehicleType.query()
+					.where("type", request.payload.type)
+					.first();
+				if (existingType) {
+					return {
+						ok: false,
+						msge: `Vehicle with '${request.payload.vehicleTypeId}' is not real`,
+					};
+				}
+				// if (request.query.isAdmin==="true"){
+				const newVehicles = await VehicleType.query().insert({
+					type: request.payload.type,
+				});
+				if (newVehicles) {
+					return {
+						ok: true,
+						msge: `Vehicle type created`,
+					};
+				} else {
+					return {
+						ok: false,
+						msge: `Couldn't create vehicle type`,
+					};
+				}
+			}
+		},
+
+		{
+			method: "GET",
+			path: "/admin-Drivers",
+			handler: async (request, h) => {
+
+				if (request.query.isAdmin === "true") {
+					const drivers = await Driver.query()
+					if(drivers){
+						return drivers
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method: "GET",
+			path: "/admin-Users",
+			handler: async (request, h) => {
+
+				if (request.query.isAdmin === "true") {
+					const users = await User.query()
+					if(users){
+						return users
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method: "POST",
+			path: "/admin-Users",
+			config: {
+				description: "Create new User",
+			},
+
+			handler: async (request, h) => {
+
+				const existingType = await User.query()
+					.where("email", request.payload.email)
+					.first();
+				if (existingType) {
+					return {
+						ok: false,
+						msge: `User with '${request.payload.email}' already exists`,
+					};
+				}
+				// if (request.query.isAdmin==="true"){
+				const newVehicles = await User.query().insert({
+					firstName: request.payload.firstName,
+					lastName: request.payload.lastName,
+					email: request.payload.email,
+					phone: request.payload.phone,
+					password: request.payload.password,
+					isAdmin: request.payload.isAdmin
+				});
+				if (newVehicles) {
+					return {
+						ok: true,
+						msge: `Vehicle type created`,
+					};
+				} else {
+					return {
+						ok: false,
+						msge: `Couldn't create vehicle type`,
+					};
+				}
+			}
+		},
+
+		{
+			method: "GET",
+			path: "/admin-Locations",
+			handler: async (request, h) => {
+
+				if (request.query.isAdmin === "true") {
+					const locs = await Location.query()
+					if(locs){
+						return locs
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method: "GET",
+			path: "/admin-Rides",
+			handler: async (request, h) => {
+
+				if (request.query.isAdmin === "true") {
+					const rides = await Ride.query()
+					if(rides){
+						return rides
+					} else {
+						return {
+							ok: false
+						};
+					}
+				} else {
+					return{
+						ok: false
+					};
+				}
+			}
+		},
+
+		{
+			method: "POST",
+			path: "/admin-authorize-vehicle",
+			options: {
+				description: "Admin authorize vehicle"
+			},
+			handler: async (request, h) => {
+
+				console.log(request.payload.UserEmail)
+				const user = await User.query()
+					.select('id')
+					.where('email', request.payload.UserEmail)
+					.first()
+
+				console.log(user)
+
+				const driver = await user
+					.$relatedQuery('Driver')
+					.select('id')
+					.where('Driver.userId', user.id)
+					.first()
+
+				console.log(driver)
+
+				const vehicle = await Vehicle.query()
+					.select('id')
+					.where('liscensePlate', request.payload.LicensePlate)
+					.first()
+
+				console.log(vehicle)
+
+				const authorizeVehicle = await vehicle
+					.$relatedQuery('Driver')
+					.relate(driver)
+
+				if (authorizeVehicle) {
+					return {
+						ok: true,
+						msge: "Successfully authorized vehicle"
+					}
+				} else {
 					return {
 						ok: false
 					}
 				}
 
-
-			},
-		},
-
+			}
+		}
 
 	]);
 
